@@ -1,0 +1,22 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "ctx7sk-580108d6-7958-4d6d-907a-4d4c957ea524"
+      },
+      "enabled": true
+    },
+    "pencil": {
+      "type": "local",
+      "command": [
+        "/mnt/c/Users/Raposo/AppData/Local/Programs/Pencil/resources/app.asar.unpacked/out/mcp-server-windows-x64.exe",
+        "--app",
+        "desktop"
+      ],
+      "enabled": true
+    }
+  }
+}
