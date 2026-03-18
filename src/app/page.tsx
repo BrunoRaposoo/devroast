@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CodeEditor } from "@/components/ui/code-editor";
@@ -63,11 +64,14 @@ export default function Home() {
 							shame_leaderboard
 						</span>
 					</div>
-					<div className="rounded border border-border px-3 py-1.5">
+					<Link
+						href="/leaderboard"
+						className="rounded border border-border px-3 py-1.5"
+					>
 						<span className="font-mono text-xs text-text-secondary">
 							$ view_all &gt;&gt;
 						</span>
-					</div>
+					</Link>
 				</div>
 				<p className="font-mono text-xs text-text-tertiary md:text-sm">
 					{"// the worst code on the internet, ranked by shame"}
