@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { CodeEditor } from "@/components/ui/code-editor";
 import { Toggle } from "@/components/ui/toggle";
-
-const LINE_NUMBERS = Array.from({ length: 20 }, (_, i) => i + 1);
 
 export default function Home() {
 	const [roastMode, setRoastMode] = useState(false);
@@ -24,26 +23,14 @@ export default function Home() {
 				</p>
 			</section>
 
-			<section className="w-full max-w-[780px] overflow-hidden rounded-md border border-border bg-bg-surface">
-				<div className="flex h-10 items-center gap-3 border-b border-border px-4">
-					<span className="h-2.5 w-2.5 rounded-full bg-[#EF4444]" />
-					<span className="h-2.5 w-2.5 rounded-full bg-[#F59E0B]" />
-					<span className="h-2.5 w-2.5 rounded-full bg-[#10B981]" />
-				</div>
-				<div className="flex">
-					<div className="hidden w-12 flex-col items-end gap-2 bg-bg-surface px-3 py-4 pt-4 text-right font-mono text-xs text-text-tertiary md:flex">
-						{LINE_NUMBERS.map((num) => (
-							<span key={`ln-${num}`}>{num}</span>
-						))}
-					</div>
-					<textarea
-						value={code}
-						onChange={(e) => setCode(e.target.value)}
-						placeholder={"// paste your code here..."}
-						className="h-80 w-full resize-none bg-bg-surface p-4 font-mono text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none"
-					/>
-				</div>
-			</section>
+			<CodeEditor
+				code={code}
+				onChange={setCode}
+				showLanguageSelector={true}
+				showLineNumbers={true}
+				showCopyButton={true}
+				rows={20}
+			/>
 
 			<section className="flex w-full max-w-[780px] flex-col items-start justify-between gap-4 md:flex-row md:items-center">
 				<div className="flex flex-wrap items-center gap-4 md:gap-6">
