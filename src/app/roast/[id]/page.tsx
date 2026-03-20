@@ -36,9 +36,22 @@ export async function generateMetadata({ params }: RoastResultPageProps) {
 	const { id } = await params;
 	try {
 		const data = await getRoastData(id);
+		const baseUrl = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
+		const truncatedQuote = data.title.slice(0, 100);
+
+		const ogUrl = new URL(`${baseUrl}/api/og`);
+		ogUrl.searchParams.set("score", String(data.score));
+		ogUrl.searchParams.set("verdict", data.verdict);
+		ogUrl.searchParams.set("language", data.language);
+		ogUrl.searchParams.set("title", data.title);
+		ogUrl.searchParams.set("quote", truncatedQuote);
+
 		return {
 			title: `Roast Result: ${data.score}/10 | DevRoast`,
 			description: data.title,
+			openGraph: {
+				images: [ogUrl.toString()],
+			},
 		};
 	} catch {
 		return { title: "Roast Result | DevRoast" };
