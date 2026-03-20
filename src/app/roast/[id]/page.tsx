@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: RoastResultPageProps) {
 	try {
 		const data = await getRoastData(id);
 		const baseUrl = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
-		const truncatedQuote = data.title.slice(0, 100);
+		const truncatedQuote = (data.title || "").slice(0, 100);
 
 		const ogUrl = new URL(`${baseUrl}/api/og`);
 		ogUrl.searchParams.set("score", String(data.score));
