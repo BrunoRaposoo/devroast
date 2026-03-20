@@ -4,6 +4,8 @@ import { LeaderboardSkeleton } from "@/components/leaderboard-skeleton";
 import { createTRPCContext } from "@/trpc/init";
 import { appRouter } from "@/trpc/routers/_app";
 
+export const revalidate = 3600;
+
 async function getLeaderboardData() {
 	const ctx = await createTRPCContext();
 	const caller = appRouter.createCaller(ctx);
