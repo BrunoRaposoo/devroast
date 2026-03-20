@@ -1,6 +1,7 @@
 import {
 	decimal,
 	integer,
+	jsonb,
 	pgEnum,
 	pgTable,
 	text,
@@ -12,6 +13,19 @@ export const roastModeEnum = pgEnum("roast_mode", [
 	"sarcastic",
 	"constructive",
 ]);
+
+export const verdictEnum = pgEnum("verdict", [
+	"needs_serious_help",
+	"needs_work",
+	"acceptable",
+	"good",
+]);
+
+export interface AnalysisItem {
+	title: string;
+	description: string;
+	severity: "critical" | "warning";
+}
 
 export const languageEnum = pgEnum("programming_language", [
 	"javascript",
@@ -51,6 +65,9 @@ export const roastResults = pgTable("roast_results", {
 	score: decimal("score", { precision: 3, scale: 2 }).notNull(),
 	roastMode: roastModeEnum("roast_mode").notNull().default("sarcastic"),
 	feedback: text("feedback").notNull(),
+	title: text("title").notNull(),
+	verdict: verdictEnum("verdict").notNull(),
+	analysis: jsonb("analysis").notNull().default("[]"),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
