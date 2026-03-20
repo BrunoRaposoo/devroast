@@ -14,6 +14,16 @@ export async function POST(request: NextRequest) {
 		const body: GenerateOGRequest = await request.json();
 		const { score, verdict, language, title, quote } = body;
 
+		if (!score || !verdict || !language || !title || !quote) {
+			return NextResponse.json(
+				{
+					error:
+						"Missing required fields: score, verdict, language, title, quote",
+				},
+				{ status: 400 },
+			);
+		}
+
 		const baseUrl = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
 		const ogUrl = new URL(`${baseUrl}/api/og`);
 		ogUrl.searchParams.set("score", score);
@@ -26,10 +36,13 @@ export async function POST(request: NextRequest) {
 
 		if (!takumiApiKey) {
 			return NextResponse.json(
-				{ error: "TAKUMI_API_KEY not configured" },
+				{ error: "Server configuration error" },
 				{ status: 500 },
 			);
 		}
+
+		const controller = new AbortController();
+		const timeoutId = setTimeout(() => controller.abort(), 30000);
 
 		const takumiResponse = await fetch("https://api.takumi.ink/v1/generation", {
 			method: "POST",
@@ -40,12 +53,14 @@ export async function POST(request: NextRequest) {
 			body: JSON.stringify({
 				image_url: ogUrl.toString(),
 			}),
+			signal: controller.signal,
 		});
 
+		clearTimeout(timeoutId);
+
 		if (!takumiResponse.ok) {
-			const error = await takumiResponse.text();
 			return NextResponse.json(
-				{ error: "Failed to generate image", details: error },
+				{ error: "Failed to generate image" },
 				{ status: takumiResponse.status },
 			);
 		}
@@ -53,8 +68,11 @@ export async function POST(request: NextRequest) {
 		const result = await takumiResponse.json();
 		return NextResponse.json({ imageUrl: result.image_url });
 	} catch (error) {
+		if (error instanceof Error && error.name === "AbortError") {
+			return NextResponse.json({ error: "Request timed out" }, { status: 504 });
+		}
 		return NextResponse.json(
-			{ error: "Internal error", details: String(error) },
+			{ error: "Failed to generate image" },
 			{ status: 500 },
 		);
 	}
