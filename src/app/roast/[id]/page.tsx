@@ -65,7 +65,6 @@ export default async function RoastResultPage({
 				score={data.score}
 				title={data.title}
 				verdict={data.verdict}
-				roastMode={data.roastMode}
 				language={data.language}
 				lines={lines}
 			/>

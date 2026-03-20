@@ -4,7 +4,7 @@ interface RoastResultHeaderProps {
 	score: number;
 	title: string;
 	verdict: string;
-	roastMode: string;
+
 	language: string;
 	lines: number;
 }
@@ -13,7 +13,6 @@ export function RoastResultHeader({
 	score,
 	title,
 	verdict,
-	roastMode,
 	language,
 	lines,
 }: RoastResultHeaderProps) {
