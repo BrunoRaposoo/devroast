@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
 	const language = searchParams.get("language") || "other";
 	const _title = searchParams.get("title") || "Roast Result";
 	const quote = searchParams.get("quote") || "";
+	const lines = searchParams.get("lines");
 
 	const verdictColors: Record<string, string> = {
 		needs_serious_help: "#ef4444",
@@ -145,7 +146,7 @@ export async function GET(request: NextRequest) {
       <div class="verdict-dot"></div>
       <span class="verdict-text">${verdictLabel}</span>
     </div>
-    <span class="lang-info">lang: ${language}</span>
+    <span class="lang-info">lang: ${language}${lines ? ` · ${lines} lines` : ''}</span>
     <span class="quote">"${quote}"</span>
   </div>
 </body>
