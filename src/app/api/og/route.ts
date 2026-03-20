@@ -1,13 +1,36 @@
 import { type NextRequest, NextResponse } from "next/server";
 
+function escapeHtml(str: string): string {
+	return str
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#039;");
+}
+
+const VALID_VERDICTS = [
+	"needs_serious_help",
+	"needs_work",
+	"acceptable",
+	"good",
+] as const;
+
 export async function GET(request: NextRequest) {
 	const { searchParams } = new URL(request.url);
-	const score = searchParams.get("score") || "0";
-	const verdict = searchParams.get("verdict") || "acceptable";
+	const rawScore = searchParams.get("score") || "0";
+	const rawVerdict = searchParams.get("verdict") || "acceptable";
 	const language = searchParams.get("language") || "other";
-	const _title = searchParams.get("title") || "Roast Result";
 	const quote = searchParams.get("quote") || "";
 	const lines = searchParams.get("lines");
+
+	const verdict = VALID_VERDICTS.includes(
+		rawVerdict as (typeof VALID_VERDICTS)[number],
+	)
+		? rawVerdict
+		: "acceptable";
+
+	const score = escapeHtml(rawScore);
 
 	const verdictColors: Record<string, string> = {
 		needs_serious_help: "#ef4444",
@@ -25,6 +48,11 @@ export async function GET(request: NextRequest) {
 
 	const color = verdictColors[verdict] || "#22c55e";
 	const verdictLabel = verdictText[verdict] || "acceptable";
+
+	const escapedLanguage = escapeHtml(language);
+	const escapedQuote = escapeHtml(quote);
+	const escapedLines = lines ? escapeHtml(lines) : undefined;
+	const escapedVerdictLabel = escapeHtml(verdictLabel);
 
 	const html = `
 <!DOCTYPE html>
@@ -144,10 +172,10 @@ export async function GET(request: NextRequest) {
     </div>
     <div class="verdict">
       <div class="verdict-dot"></div>
-      <span class="verdict-text">${verdictLabel}</span>
+      <span class="verdict-text">${escapedVerdictLabel}</span>
     </div>
-    <span class="lang-info">lang: ${language}${lines ? ` · ${lines} lines` : ''}</span>
-    <span class="quote">"${quote}"</span>
+    <span class="lang-info">lang: ${escapedLanguage}${escapedLines ? ` · ${escapedLines} lines` : ""}</span>
+    <span class="quote">"${escapedQuote}"</span>
   </div>
 </body>
 </html>
