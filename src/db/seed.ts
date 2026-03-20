@@ -160,6 +160,29 @@ async function seed() {
 			? faker.helpers.arrayElement(ROAST_FEEDBACKS)
 			: faker.helpers.arrayElement(GOOD_FEEDBACKS);
 
+		const verdict =
+			score >= 7
+				? "good"
+				: score >= 5
+					? "acceptable"
+					: score >= 3
+						? "needs_work"
+						: "needs_serious_help";
+
+		const title = faker.helpers.arrayElement([
+			"Something went terribly wrong",
+			"This is why we can't have nice things",
+			"Professional refactoring needed",
+			"Works on my machine",
+			"Who wrote this?",
+			"A masterpiece of chaos",
+			"In desperate need of help",
+			"Not quite there yet",
+			"Acceptable... barely",
+			"This is actually decent",
+			"Well done!",
+		]);
+
 		const [result] = await db
 			.insert(schema.roastResults)
 			.values({
@@ -167,6 +190,9 @@ async function seed() {
 				score: score.toString(),
 				roastMode: isRoastMode ? "sarcastic" : "constructive",
 				feedback,
+				title,
+				verdict,
+				analysis: "[]",
 				createdAt: faker.date.past({ years: 1 }),
 			})
 			.returning({ id: schema.roastResults.id });
