@@ -104,10 +104,13 @@ npm run db:push
 ```typescript
 // src/trpc/routers/roast.ts
 import { z } from "zod";
+import { eq } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
 import { db } from "@/db";
 import { codeSubmissions, roastResults } from "@/db/schema";
 import { baseProcedure, createTRPCRouter } from "@/trpc/init";
 import { openai } from "@/lib/openai";
+import { languageEnum } from "@/db/schema";
 
 const sarcasticSystemPrompt = `Você é um crítico de código sarcástico e implacável. Analise código e forneça feedback humorístico mas preciso. Seja cruel de forma criativa. Responda apenas em JSON.`;
 
@@ -125,26 +128,45 @@ export const roastRouter = createTRPCRouter({
         ? sarcasticSystemPrompt 
         : constructiveSystemPrompt;
 
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { 
-            role: "user", 
-            content: `Analise este código ${input.language}:\n\n\`\`\`${input.language}\n${input.code}\n\`\`\`\n\nForneça um JSON com:\n{\n  "score": number (0-10),\n  "title": string,\n  "verdict": "needs_serious_help" | "needs_work" | "acceptable" | "good",\n  "analysis": [\n    {\n      "title": string,\n      "description": string,\n      "severity": "critical" | "warning"\n    }\n  ]\n}\n\nRetorne APENAS o JSON válido.` 
-          }
-        ],
-        response_format: { type: "json_object" },
-      });
+      let parsed;
+      let lastError;
+      
+      // Retry logic for invalid JSON
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const completion = await openai.chat.completions.create({
+            model: "gpt-4o",
+            messages: [
+              { role: "system", content: systemPrompt },
+              { 
+                role: "user", 
+                content: `Analise este código ${input.language}:\n\n\`\`\`${input.language}\n${input.code}\n\`\`\`\n\nForneça um JSON com:\n{\n  "score": number (0-10),\n  "title": string,\n  "verdict": "needs_serious_help" | "needs_work" | "acceptable" | "good",\n  "analysis": [\n    {\n      "title": string,\n      "description": string,\n      "severity": "critical" | "warning"\n    }\n  ]\n}\n\nRetorne APENAS o JSON válido.` 
+              }
+            ],
+            response_format: { type: "json_object" },
+          });
 
-      const content = completion.choices[0].message.content;
-      if (!content) throw new Error("No response from OpenAI");
+          const content = completion.choices[0].message.content;
+          if (!content) throw new Error("No response from OpenAI");
 
-      const parsed = JSON.parse(content);
+          parsed = JSON.parse(content);
+          break; // Success, exit retry loop
+        } catch (error) {
+          lastError = error;
+          // Retry once on JSON parse failure
+        }
+      }
+
+      if (!parsed) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to generate roast. Please try again.",
+        });
+      }
 
       const [submission] = await db.insert(codeSubmissions).values({
         code: input.code,
-        language: input.language as any,
+        language: input.language as (typeof languageEnum)[number],
         sessionId: crypto.randomUUID(),
       }).returning();
 
@@ -155,7 +177,7 @@ export const roastRouter = createTRPCRouter({
         title: parsed.title,
         verdict: parsed.verdict,
         analysis: parsed.analysis,
-        feedback: parsed.analysis.map((a: any) => a.description).join("\n"),
+        feedback: parsed.analysis.map((a: { description: string }) => a.description).join("\n"),
       }).returning();
 
       return { roastId: roast.id, submissionId: submission.id };
