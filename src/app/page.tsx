@@ -1,15 +1,45 @@
-"use client";
-
 import Link from "next/link";
-import { useState } from "react";
-import { Metrics } from "@/components/metrics";
-import { Button } from "@/components/ui/button";
-import { CodeEditor } from "@/components/ui/code-editor";
-import { Toggle } from "@/components/ui/toggle";
+import { Suspense } from "react";
+import { CodeEditorSection } from "@/components/code-editor-section";
+import { HomepageLeaderboard } from "@/components/homepage-leaderboard";
+import { Metrics } from "@/components/metrics-server";
+import { createTRPCContext } from "@/trpc/init";
+import { appRouter } from "@/trpc/routers/_app";
+
+async function getLeaderboardData() {
+	const ctx = await createTRPCContext();
+	const caller = appRouter.createCaller(ctx);
+	return caller.leaderboard.getTopWorst();
+}
+
+async function getMetricsData() {
+	const ctx = await createTRPCContext();
+	const caller = appRouter.createCaller(ctx);
+	return caller.metrics.getStats();
+}
+
+function LeaderboardSkeleton() {
+	return (
+		<div className="flex flex-col gap-4">
+			{[1, 2, 3].map((i) => (
+				<div key={i} className="overflow-hidden rounded border border-border">
+					<div className="flex h-12 items-center justify-between border-b border-border bg-bg-surface px-5">
+						<div className="flex items-center gap-4">
+							<div className="h-4 w-6 animate-pulse rounded bg-border" />
+							<div className="h-4 w-8 animate-pulse rounded bg-border" />
+						</div>
+						<div className="h-4 w-12 animate-pulse rounded bg-border" />
+					</div>
+					<div className="h-32 animate-pulse bg-bg-surface" />
+				</div>
+			))}
+		</div>
+	);
+}
 
 export default function Home() {
-	const [roastMode, setRoastMode] = useState(false);
-	const [code, setCode] = useState("");
+	const leaderboardPromise = getLeaderboardData();
+	const metricsPromise = getMetricsData();
 
 	return (
 		<div className="flex flex-col items-center gap-8 px-4 py-12 md:px-10 md:py-20">
@@ -25,32 +55,10 @@ export default function Home() {
 				</p>
 			</section>
 
-			<CodeEditor
-				code={code}
-				onChange={setCode}
-				showLanguageSelector={true}
-				showLineNumbers={true}
-				showCopyButton={true}
-				rows={20}
-			/>
-
-			<section className="flex w-full max-w-[780px] flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-				<div className="flex flex-wrap items-center gap-4 md:gap-6">
-					<div className="flex items-center gap-2.5">
-						<Toggle pressed={roastMode} onPressedChange={setRoastMode} />
-						<span className="font-mono text-sm text-accent-green">
-							roast mode
-						</span>
-					</div>
-					<span className="font-mono text-xs text-text-tertiary">
-						{"// maximum sarcasm enabled"}
-					</span>
-				</div>
-				<Button variant="primary">$ roast_my_code</Button>
-			</section>
+			<CodeEditorSection />
 
 			<section className="flex items-center gap-4 font-mono text-xs text-text-tertiary md:gap-6">
-				<Metrics />
+				<Metrics promise={metricsPromise} />
 			</section>
 
 			<section className="mt-4 flex w-full max-w-[960px] flex-col gap-4 md:mt-8 md:gap-6">
@@ -76,68 +84,9 @@ export default function Home() {
 					{"// the worst code on the internet, ranked by shame"}
 				</p>
 
-				<div className="w-full overflow-hidden rounded border border-border">
-					<div className="flex h-10 items-center bg-bg-surface px-3 text-text-tertiary md:px-5">
-						<span className="w-8 font-mono text-xs font-medium md:w-12">#</span>
-						<span className="w-12 font-mono text-xs font-medium md:w-16">
-							score
-						</span>
-						<span className="flex-1 font-mono text-xs font-medium">code</span>
-						<span className="w-20 font-mono text-xs font-medium md:w-24">
-							lang
-						</span>
-					</div>
-
-					{[
-						{
-							rank: 1,
-							score: "1.2",
-							code: [
-								"eval(prompt('enter code'))",
-								"document.write(response)",
-								"// trust the user lol",
-							],
-							lang: "javascript",
-						},
-						{
-							rank: 2,
-							score: "2.1",
-							code: ["function hack() {", "  return true;", "}"],
-							lang: "python",
-						},
-						{
-							rank: 3,
-							score: "2.8",
-							code: ["SELECT * FROM users", "WHERE 1=1 --"],
-							lang: "sql",
-						},
-					].map((item) => (
-						<div
-							key={item.rank}
-							className="flex border-b border-border px-3 py-3 md:px-5 md:py-4"
-						>
-							<span className="w-8 font-mono text-xs text-text-secondary md:w-12">
-								{item.rank}
-							</span>
-							<span className="w-12 font-mono text-xs font-bold text-accent-red md:w-16">
-								{item.score}
-							</span>
-							<div className="flex-1 space-y-0.5 overflow-hidden">
-								{item.code.map((line) => (
-									<p
-										key={line}
-										className="truncate font-mono text-xs text-text-primary md:overflow-visible"
-									>
-										{line}
-									</p>
-								))}
-							</div>
-							<span className="w-20 overflow-hidden text-ellipsis font-mono text-xs text-text-secondary md:w-24 md:overflow-visible">
-								{item.lang}
-							</span>
-						</div>
-					))}
-				</div>
+				<Suspense fallback={<LeaderboardSkeleton />}>
+					<HomepageLeaderboard promise={leaderboardPromise} />
+				</Suspense>
 			</section>
 
 			<div className="h-8 md:h-16" />

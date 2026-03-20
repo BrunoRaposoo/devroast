@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { db } from "@/db";
 import { codeSubmissions, roastResults } from "@/db/schema";
 import { baseProcedure, createTRPCRouter } from "@/trpc/init";

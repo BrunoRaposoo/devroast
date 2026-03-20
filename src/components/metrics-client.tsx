@@ -1,52 +1,33 @@
 "use client";
 
 import NumberFlow from "@number-flow/react";
-import { useQuery } from "@tanstack/react-query";
-import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import { useEffect, useState } from "react";
-import type { AppRouter } from "@/trpc/routers/_app";
 
-const trpcClient = createTRPCClient<AppRouter>({
-	links: [
-		httpBatchLink({
-			url: `/api/trpc`,
-		}),
-	],
-});
-
-function MetricsSkeleton() {
-	return (
-		<div className="flex items-center gap-6">
-			<div className="flex flex-col items-center gap-1">
-				<div className="h-7 w-16 animate-pulse rounded bg-border" />
-				<div className="h-3 w-12 animate-pulse rounded bg-border" />
-			</div>
-			<span className="text-text-tertiary">·</span>
-			<div className="flex flex-col items-center gap-1">
-				<div className="h-7 w-12 animate-pulse rounded bg-border" />
-				<div className="h-3 w-12 animate-pulse rounded bg-border" />
-			</div>
-		</div>
-	);
+interface Stats {
+	totalRoasts: number;
+	avgScore: number;
 }
 
-function MetricsContent() {
+interface MetricsClientProps {
+	promise: Promise<Stats>;
+}
+
+export function MetricsClient({ promise }: MetricsClientProps) {
+	const [data, setData] = useState<Stats | null>(null);
+
 	const [displayTotalRoasts, setDisplayTotalRoasts] = useState(0);
 	const [displayAvgScore, setDisplayAvgScore] = useState(0);
 
-	const { data, isLoading } = useQuery({
-		queryKey: ["metrics", "getStats"],
-		queryFn: () => trpcClient.metrics.getStats.query(),
-	});
-
 	useEffect(() => {
-		if (data && !isLoading) {
+		promise.then((stats) => {
+			setData(stats);
+
 			const duration = 1000;
 			const steps = 30;
 			const interval = duration / steps;
 
-			const targetTotal = Number(data.totalRoasts);
-			const targetAvg = Number(data.avgScore);
+			const targetTotal = stats.totalRoasts;
+			const targetAvg = stats.avgScore;
 
 			let step = 0;
 			const timer = setInterval(() => {
@@ -65,11 +46,23 @@ function MetricsContent() {
 			}, interval);
 
 			return () => clearInterval(timer);
-		}
-	}, [data, isLoading]);
+		});
+	}, [promise]);
 
-	if (isLoading || !data) {
-		return <MetricsSkeleton />;
+	if (!data) {
+		return (
+			<div className="flex items-center gap-6">
+				<div className="flex flex-col items-center gap-1">
+					<div className="h-7 w-16 animate-pulse rounded bg-border" />
+					<div className="h-3 w-12 animate-pulse rounded bg-border" />
+				</div>
+				<span className="text-text-tertiary">·</span>
+				<div className="flex flex-col items-center gap-1">
+					<div className="h-7 w-12 animate-pulse rounded bg-border" />
+					<div className="h-3 w-12 animate-pulse rounded bg-border" />
+				</div>
+			</div>
+		);
 	}
 
 	return (
@@ -98,8 +91,4 @@ function MetricsContent() {
 			</div>
 		</div>
 	);
-}
-
-export function Metrics() {
-	return <MetricsContent />;
 }

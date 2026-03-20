@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { CodeBlock } from "@/components/ui/code-block";
 import { ScoreRing } from "@/components/ui/score-ring";
 
@@ -74,146 +73,128 @@ export default function RoastResultPage() {
 	const data = STATIC_ROAST_DATA;
 
 	return (
-		<div className="min-h-screen bg-bg-page">
-			<nav className="flex h-14 items-center justify-between border-b border-border-primary px-10">
-				<Link href="/" className="flex items-center gap-2">
-					<span className="font-mono text-2xl font-bold text-accent-green">
-						&gt;
-					</span>
-					<span className="font-mono text-lg font-medium text-text-primary">
-						devroast
-					</span>
-				</Link>
-				<Link href="/leaderboard">
-					<span className="font-mono text-sm text-text-secondary">
-						leaderboard
-					</span>
-				</Link>
-			</nav>
+		<div className="mx-auto flex max-w-4xl flex-col gap-10 px-5 py-10 md:px-20 md:py-16">
+			<section className="flex items-center gap-12">
+				<ScoreRing value={data.score} size="lg" />
 
-			<main className="mx-auto flex max-w-4xl flex-col gap-10 px-5 py-10 md:px-20 md:py-16">
-				<section className="flex items-center gap-12">
-					<ScoreRing value={data.score} size="lg" />
-
-					<div className="flex flex-1 flex-col gap-4">
-						<div className="flex items-center gap-2">
-							<span className="h-2 w-2 rounded-full bg-accent-red" />
-							<span className="font-mono text-sm font-medium text-accent-red">
-								verdict: {data.verdict}
-							</span>
-						</div>
-
-						<h1 className="font-mono text-xl font-normal leading-relaxed text-text-primary">
-							"{data.title}"
-						</h1>
-
-						<div className="flex items-center gap-4">
-							<span className="font-mono text-xs text-text-tertiary">
-								lang: {data.language}
-							</span>
-							<span className="text-text-tertiary">·</span>
-							<span className="font-mono text-xs text-text-tertiary">
-								{data.lines} lines
-							</span>
-						</div>
-
-						<div className="flex gap-3">
-							<button
-								type="button"
-								className="rounded border border-border-primary px-4 py-2 font-mono text-xs text-text-secondary transition-colors hover:bg-border"
-							>
-								share
-							</button>
-						</div>
-					</div>
-				</section>
-
-				<div className="h-px w-full bg-border-primary" />
-
-				<section className="flex flex-col gap-4">
+				<div className="flex flex-1 flex-col gap-4">
 					<div className="flex items-center gap-2">
-						<span className="font-mono text-sm font-bold text-accent-green">
-							{/* // */}
-						</span>
-						<span className="font-mono text-sm font-bold text-text-primary">
-							your_submission
+						<span className="h-2 w-2 rounded-full bg-accent-red" />
+						<span className="font-mono text-sm font-medium text-accent-red">
+							verdict: {data.verdict}
 						</span>
 					</div>
 
-					<div className="overflow-hidden rounded border border-border-primary bg-bg-input">
-						<CodeBlock code={data.code} language={data.language} />
-					</div>
-				</section>
+					<h1 className="font-mono text-xl font-normal leading-relaxed text-text-primary">
+						"{data.title}"
+					</h1>
 
-				<div className="h-px w-full bg-border-primary" />
-
-				<section className="flex flex-col gap-6">
-					<div className="flex items-center gap-2">
-						<span className="font-mono text-sm font-bold text-accent-green">
-							{/* // */}
+					<div className="flex items-center gap-4">
+						<span className="font-mono text-xs text-text-tertiary">
+							lang: {data.language}
 						</span>
-						<span className="font-mono text-sm font-bold text-text-primary">
-							detailed_analysis
+						<span className="text-text-tertiary">·</span>
+						<span className="font-mono text-xs text-text-tertiary">
+							{data.lines} lines
 						</span>
 					</div>
 
-					<div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-						{data.analysis.map((issue) => (
-							<div
-								key={issue.title}
-								className="rounded border border-border-primary bg-bg-surface p-5"
-							>
-								<div className="mb-3 flex items-center gap-2">
-									<span
-										className={`h-2 w-2 rounded-full ${
-											issue.severity === "critical"
-												? "bg-accent-red"
-												: "bg-accent-amber"
-										}`}
-									/>
-									<span
-										className={`font-mono text-xs font-medium ${
-											issue.severity === "critical"
-												? "text-accent-red"
-												: "text-accent-amber"
-										}`}
-									>
-										{issue.severity}
-									</span>
-								</div>
-								<h3 className="mb-2 font-mono text-sm font-medium text-text-primary">
-									{issue.title}
-								</h3>
-								<p className="font-mono text-xs text-text-secondary">
-									{issue.description}
-								</p>
+					<div className="flex gap-3">
+						<button
+							type="button"
+							className="rounded border border-border px-4 py-2 font-mono text-xs text-text-secondary transition-colors hover:bg-border"
+						>
+							share
+						</button>
+					</div>
+				</div>
+			</section>
+
+			<div className="h-px w-full bg-border" />
+
+			<section className="flex flex-col gap-4">
+				<div className="flex items-center gap-2">
+					<span className="font-mono text-sm font-bold text-accent-green">
+						{"//"}
+					</span>
+					<span className="font-mono text-sm font-bold text-text-primary">
+						your_submission
+					</span>
+				</div>
+
+				<div className="overflow-hidden rounded border border-border bg-bg-input">
+					<CodeBlock code={data.code} language={data.language} />
+				</div>
+			</section>
+
+			<div className="h-px w-full bg-border" />
+
+			<section className="flex flex-col gap-6">
+				<div className="flex items-center gap-2">
+					<span className="font-mono text-sm font-bold text-accent-green">
+						{"//"}
+					</span>
+					<span className="font-mono text-sm font-bold text-text-primary">
+						detailed_analysis
+					</span>
+				</div>
+
+				<div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+					{data.analysis.map((issue) => (
+						<div
+							key={issue.title}
+							className="rounded border border-border bg-bg-surface p-5"
+						>
+							<div className="mb-3 flex items-center gap-2">
+								<span
+									className={`h-2 w-2 rounded-full ${
+										issue.severity === "critical"
+											? "bg-accent-red"
+											: "bg-accent-amber"
+									}`}
+								/>
+								<span
+									className={`font-mono text-xs font-medium ${
+										issue.severity === "critical"
+											? "text-accent-red"
+											: "text-accent-amber"
+									}`}
+								>
+									{issue.severity}
+								</span>
 							</div>
-						))}
-					</div>
-				</section>
-
-				<div className="h-px w-full bg-border-primary" />
-
-				<section className="flex flex-col gap-6">
-					<div className="flex items-center gap-2">
-						<span className="font-mono text-sm font-bold text-accent-green">
-							{/* // */}
-						</span>
-						<span className="font-mono text-sm font-bold text-text-primary">
-							suggested_fix
-						</span>
-					</div>
-
-					<div className="overflow-hidden rounded border border-border-primary bg-bg-input">
-						<div className="flex h-10 items-center border-b border-border-primary px-4">
-							<span className="font-mono text-xs font-medium text-text-secondary">
-								your_code.ts → improved_code.ts
-							</span>
+							<h3 className="mb-2 font-mono text-sm font-medium text-text-primary">
+								{issue.title}
+							</h3>
+							<p className="font-mono text-xs text-text-secondary">
+								{issue.description}
+							</p>
 						</div>
-						<CodeBlock code={data.suggestedFix.after} language="typescript" />
+					))}
+				</div>
+			</section>
+
+			<div className="h-px w-full bg-border" />
+
+			<section className="flex flex-col gap-6">
+				<div className="flex items-center gap-2">
+					<span className="font-mono text-sm font-bold text-accent-green">
+						{"//"}
+					</span>
+					<span className="font-mono text-sm font-bold text-text-primary">
+						suggested_fix
+					</span>
+				</div>
+
+				<div className="overflow-hidden rounded border border-border bg-bg-input">
+					<div className="flex h-10 items-center border-b border-border px-4">
+						<span className="font-mono text-xs font-medium text-text-secondary">
+							your_code.ts → improved_code.ts
+						</span>
 					</div>
-				</section>
-			</main>
+					<CodeBlock code={data.suggestedFix.after} language="typescript" />
+				</div>
+			</section>
 		</div>
 	);
 }
