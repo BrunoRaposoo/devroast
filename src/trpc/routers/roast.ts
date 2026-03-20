@@ -31,12 +31,21 @@ export const roastRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ input }) => {
+			if (!process.env.OPENAI_API_KEY) {
+				console.error("OPENAI_API_KEY is not configured");
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "OpenAI API key is not configured.",
+				});
+			}
+
 			const systemPrompt =
 				input.roastMode === "sarcastic"
 					? sarcasticSystemPrompt
 					: constructiveSystemPrompt;
 
 			let parsed: RoastResponse | undefined;
+			let lastError: Error | null = null;
 
 			for (let attempt = 0; attempt < 2; attempt++) {
 				try {
@@ -57,15 +66,26 @@ export const roastRouter = createTRPCRouter({
 
 					parsed = JSON.parse(content);
 					break;
-				} catch {
-					// Retry once on JSON parse failure
+				} catch (error) {
+					lastError = error instanceof Error ? error : new Error(String(error));
+					console.error(
+						"OpenAI API Error (attempt",
+						attempt + 1,
+						"):",
+						lastError.message,
+					);
 				}
 			}
 
 			if (!parsed) {
+				console.error(
+					"Failed to generate roast after retries. Last error:",
+					lastError,
+				);
 				throw new TRPCError({
 					code: "INTERNAL_SERVER_ERROR",
-					message: "Failed to generate roast. Please try again.",
+					message:
+						lastError?.message || "Failed to generate roast. Please try again.",
 				});
 			}
 
